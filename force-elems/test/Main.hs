@@ -12,7 +12,7 @@ import           System.IO.Unsafe
 import           Test.HUnit
 
 hardcore :: Bool
-hardcore = False
+hardcore = True
 
 withTrace :: ((forall b. a -> b -> b) -> c) -> IO ([a], c)
 withTrace k = do
@@ -125,4 +125,19 @@ main = runTestTTAndExit . TestList $ map TestCase
         take 9 (extractIntsL $ forceElems enumL) @?= [0..8]
     , when hardcore $ do
         take 8 (extractIntsE $ forceElems enumE) @?= [0..7]
+    , when hardcore $ do
+        (traces, xs) <- withTrace $ \trace ->
+            trace "elem" () : error "spine forced beyond what was consumed"
+        length (take 1 $ forceElems xs) @?= 1
+        traces @?= ["elem"]
+    , when hardcore $ do
+        (traces, tree) <- withTrace $ \trace ->
+            Fork2
+                (error "left subtree forced")
+                (trace "x" ())
+                (error "right subtree forced")
+                (trace "y" ())
+        case forceElems tree of
+            Fork2 _ _ _ _ -> return ()
+        sort traces @?= ["x", "y"]
     ]

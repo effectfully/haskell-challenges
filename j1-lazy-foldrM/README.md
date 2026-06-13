@@ -11,17 +11,18 @@ foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
 such that
 
 ```haskell
-foldrM f z1 [a ... x, y]
+foldrM f z [a ... x, y]
 ```
 
 evaluates as
 
 ```haskell
 do
-    z2 <- f y z1
-    z3 <- f x z2
+    zY <- f y z
+    zX <- f x zY
     ...
-    f a zN
+    zA <- f a zB
+    return zA
 ```
 
 `foldrM` must
